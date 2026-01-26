@@ -1,0 +1,30 @@
+# Go
+/bin/
+/dist/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
+
+# Docker volume data (もしローカルに作ってるなら)
+data/
+postgres_data/
