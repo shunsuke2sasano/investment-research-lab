@@ -18,6 +18,8 @@ type Store interface {
 	CreateRun(ctx Context, mode string, configJSON []byte) (string, error)
 	GetRun(ctx Context, id string) (RunOutput, error)
 	ListEventsByRun(ctx Context, runID string, limit int, cursor string) ([]EventOutput, *string, error)
+	AppendEventToRun(ctx Context, runID string, input RunEventInput) (int, error)
+	ListPhase1RunEventsByRunID(ctx Context, runID string, limit int, cursor string) ([]Phase1RunEvent, *string, error)
 	GetAnomalySummaryByRun(ctx Context, runID string) (AnomalySummaryOutput, error)
 	GetTriggerDecisionByRun(ctx Context, runID string) (TriggerDecisionOutput, error)
 	ListHandoffsByRun(ctx Context, runID string) ([]HandoffOutput, error)

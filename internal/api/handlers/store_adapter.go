@@ -7,6 +7,7 @@ import (
 
 	"investment_committee/internal/db/models"
 	"investment_committee/internal/db/queries"
+	"investment_committee/internal/domain"
 )
 
 type StoreAdapter struct {
@@ -85,6 +86,13 @@ func (s *StoreAdapter) GetRun(ctx context.Context, id string) (RunOutput, error)
 	}
 	cfg := map[string]any{}
 	_ = json.Unmarshal(run.ConfigJSON, &cfg)
+	events, _, err := s.ListPhase1RunEventsByRunID(ctx, id, 200, "")
+	if err != nil {
+		return RunOutput{}, err
+	}
+	if events == nil {
+		events = []Phase1RunEvent{}
+	}
 	return RunOutput{
 		ID:         run.ID,
 		Status:     run.Status,
@@ -92,6 +100,7 @@ func (s *StoreAdapter) GetRun(ctx context.Context, id string) (RunOutput, error)
 		FinishedAt: run.FinishedAt,
 		Error:      run.Error,
 		Config:     cfg,
+		Events:     events,
 	}, nil
 }
 
@@ -125,6 +134,69 @@ func (s *StoreAdapter) ListEventsByRun(ctx context.Context, runID string, limit 
 			Confidence: e.Confidence,
 			EntityType: e.EntityType,
 			EntityID:   e.EntityID,
+		})
+	}
+	var nextCursor *string
+	if next != nil {
+		s := next.Format(time.RFC3339Nano)
+		nextCursor = &s
+	}
+	return out, nextCursor, nil
+}
+
+func (s *StoreAdapter) AppendEventToRun(ctx context.Context, runID string, input RunEventInput) (int, error) {
+	source := input.Source
+	if source == "" {
+		source = "manual"
+	}
+	source = domain.NormalizePhase1EventSource(source)
+	occurredAt := time.Now().UTC()
+	if input.OccurredAt != nil {
+		occurredAt = input.OccurredAt.UTC()
+	}
+	payload := []byte("{}")
+	if input.Payload != nil {
+		b, err := json.Marshal(input.Payload)
+		if err != nil {
+			return 0, err
+		}
+		payload = b
+	}
+	e := models.Phase1RunEvent{
+		RunID:      runID,
+		EventType:  input.EventType,
+		Source:     source,
+		OccurredAt: occurredAt,
+		Payload:    payload,
+	}
+	return s.repo.CreatePhase1RunEvent(ctx, e)
+}
+
+func (s *StoreAdapter) ListPhase1RunEventsByRunID(ctx context.Context, runID string, limit int, cursor string) ([]Phase1RunEvent, *string, error) {
+	cur, err := queries.ParseCursor(cursor)
+	if err != nil {
+		return nil, nil, err
+	}
+	items, next, err := s.repo.ListPhase1RunEventsByRunID(ctx, runID, limit, cur)
+	if err != nil {
+		return nil, nil, err
+	}
+	out := []Phase1RunEvent{}
+	for _, e := range items {
+		payload := map[string]any{}
+		if len(e.Payload) > 0 && string(e.Payload) != "null" {
+			if err := json.Unmarshal(e.Payload, &payload); err != nil {
+				payload = map[string]any{}
+			}
+		}
+		out = append(out, Phase1RunEvent{
+			RunID:      e.RunID,
+			Seq:        e.Seq,
+			EventType:  e.EventType,
+			Source:     e.Source,
+			OccurredAt: e.OccurredAt,
+			Payload:    payload,
+			CreatedAt:  e.CreatedAt,
 		})
 	}
 	var nextCursor *string

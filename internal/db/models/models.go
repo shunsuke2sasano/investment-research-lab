@@ -135,3 +135,13 @@ type Alert struct {
 	CreatedAt        time.Time       `json:"created_at"`
 	AcknowledgedAt   *time.Time      `json:"acknowledged_at,omitempty"`
 }
+
+type Phase1RunEvent struct {
+	RunID      string          `json:"run_id"`
+	Seq        int             `json:"seq"`
+	EventType  string          `json:"event_type"`
+	Source     string          `json:"source"`
+	OccurredAt time.Time       `json:"occurred_at"`
+	Payload    json.RawMessage `json:"payload_json"`
+	CreatedAt  time.Time       `json:"created_at"`
+}

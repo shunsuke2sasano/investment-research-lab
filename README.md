@@ -81,6 +81,71 @@ docker build --target builder -t investment-research-lab-builder .
 docker run --rm -v ${PWD}:/app -w /app investment-research-lab-builder go test ./... -count=1
 ```
 
+### Smoke (Phase1 events -> handoff)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_events_handoff.ps1
+# already running (reuse existing)
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_events_handoff.ps1 -NoReset
+```
+
 ## Notes
 - `case_id` in handoff creation links the handoff to the case for `/cases/{caseId}` snapshots.
 - `/cases/{caseId}/monitoring-plans` supports GET list + POST create.
+
+## Phase1 event_type registry
+- run.finalized
+- doc.fetched
+- note.added
+- signal.detected
+- universe.member_added
+
+## Phase1 event source registry
+- manual
+- system
+- sec
+- edinet
+- other
+
+## Phase1 Run Events API (examples)
+```powershell
+$base = "http://localhost:8080/api/v1"
+$headers = @{ "X-API-Key"="devkey"; "Content-Type"="application/json" }
+
+# POST event
+Invoke-RestMethod -Method Post -Uri "$base/phase1/runs/{run_id}/events" -Headers $headers -Body (@{
+  event_type="note.added"
+  source="manual"
+  payload=@{ note="example" }
+} | ConvertTo-Json -Depth 10)
+
+# GET events
+Invoke-RestMethod -Method Get -Uri "$base/phase1/runs/{run_id}/events?limit=50" -Headers @{ "X-API-Key"="devkey" }
+```
+
+## Handoff packet schema (versioned)
+```json
+{
+  "version": 1,
+  "phases": {
+    "phase1": { "run_id": "uuid", "events": [], "meta": {} }
+  },
+  "run_events": [],
+  "phase1": { "run_id": "uuid", "events": [], "meta": {} }
+}
+```
+
+## Phase1 Run config (sources)
+```powershell
+Invoke-RestMethod -Method Post -Uri "$base/phase1/runs" -Headers $headers -Body (@{
+  mode="manual"
+  config=@{ sources=@("ir"); max_items_per_source=1 }
+} | ConvertTo-Json -Depth 10)
+```
+Note: `ir` fetcher is a stub implementation for now (no external calls).
+
+### Smoke (Phase1 fetch -> doc.fetched)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_fetch.ps1
+# already running (reuse existing)
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_fetch.ps1 -NoReset
+```

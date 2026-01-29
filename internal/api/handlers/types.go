@@ -46,6 +46,7 @@ type RunOutput struct {
 	FinishedAt *time.Time     `json:"finished_at,omitempty"`
 	Error      *string        `json:"error,omitempty"`
 	Config     map[string]any `json:"config,omitempty"`
+	Events     []Phase1RunEvent `json:"events"`
 }
 
 type EventOutput struct {
@@ -69,6 +70,23 @@ type AnomalySummaryOutput struct {
 type TriggerDecisionOutput struct {
 	RunID    string `json:"run_id"`
 	Decision any    `json:"decision_json"`
+}
+
+type RunEventInput struct {
+	EventType  string         `json:"event_type"`
+	Source     string         `json:"source,omitempty"`
+	OccurredAt *time.Time     `json:"occurred_at,omitempty"`
+	Payload    map[string]any `json:"payload,omitempty"`
+}
+
+type Phase1RunEvent struct {
+	RunID      string         `json:"run_id"`
+	Seq        int            `json:"seq"`
+	EventType  string         `json:"event_type"`
+	Source     string         `json:"source"`
+	OccurredAt time.Time      `json:"occurred_at"`
+	Payload    map[string]any `json:"payload"`
+	CreatedAt  time.Time      `json:"created_at"`
 }
 
 type HandoffInput struct {

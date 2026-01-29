@@ -50,7 +50,7 @@ try {
   }
 
   Write-Host "== apply migration ==" -ForegroundColor Cyan
-  Get-Content internal\db\migrations\0001_init.sql | docker exec -i $cid psql -U app -d investment | Out-Host
+  Get-ChildItem internal\db\migrations\*.sql | Sort-Object Name | ForEach-Object { Get-Content $_.FullName } | docker exec -i $cid psql -U app -d investment | Out-Host
   if ($LASTEXITCODE -ne 0) {
     throw "migration failed"
   }

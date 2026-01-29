@@ -19,6 +19,19 @@ func (s *Server) HandleHandoffs(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	events, _, err := s.store.ListPhase1RunEventsByRunID(r.Context(), in.RunID, 200, "")
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "list failed")
+		return
+	}
+	if in.Packet == nil {
+		in.Packet = map[string]any{}
+	}
+	phase1Packet := buildPhase1Packet(in.RunID, events)
+	in.Packet["run_events"] = events
+	in.Packet["phase1"] = phase1Packet
+	in.Packet["version"] = 1
+	in.Packet["phases"] = map[string]any{"phase1": phase1Packet}
 	id, err := s.store.CreateHandoff(r.Context(), in)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, "create failed")
@@ -101,6 +114,27 @@ func validateHandoffPacket(in HandoffInput) error {
 	if !ok {
 		return errInvalid("packet.payload must be object")
 	}
+	if vRaw, ok := packet["version"]; ok {
+		if !isJSONNumber(vRaw) {
+			return errInvalid("packet.version must be number")
+		}
+	}
+	if phasesRaw, ok := packet["phases"]; ok {
+		phases, ok := phasesRaw.(map[string]any)
+		if !ok {
+			return errInvalid("packet.phases must be object")
+		}
+		if phase1Raw, ok := phases["phase1"]; ok {
+			if err := validatePhase1Packet(phase1Raw, in.RunID); err != nil {
+				return err
+			}
+		}
+	}
+	if phase1Raw, ok := packet["phase1"]; ok {
+		if err := validatePhase1Packet(phase1Raw, in.RunID); err != nil {
+			return err
+		}
+	}
 	if in.HandoffType == "light" {
 		if _, ok := payload["summary_md"].(string); !ok {
 			return errInvalid("light.payload.summary_md required")
@@ -133,3 +167,44 @@ func validateHandoffPacket(in HandoffInput) error {
 type errInvalid string
 
 func (e errInvalid) Error() string { return string(e) }
+
+func buildPhase1Packet(runID string, events []Phase1RunEvent) map[string]any {
+	return map[string]any{
+		"run_id": runID,
+		"events": events,
+		"meta":   map[string]any{},
+	}
+}
+
+func validatePhase1Packet(raw any, runID string) error {
+	phase1, ok := raw.(map[string]any)
+	if !ok {
+		return errInvalid("packet.phase1 must be object")
+	}
+	if runIDRaw, ok := phase1["run_id"]; ok {
+		runIDStr, ok := runIDRaw.(string)
+		if !ok {
+			return errInvalid("packet.phase1.run_id must be string")
+		}
+		if runIDStr != runID {
+			return errInvalid("packet.phase1.run_id mismatch")
+		}
+	}
+	if eventsRaw, ok := phase1["events"]; ok {
+		if _, ok := eventsRaw.([]any); !ok {
+			if _, ok := eventsRaw.([]Phase1RunEvent); !ok {
+				return errInvalid("packet.phase1.events must be array")
+			}
+		}
+	}
+	return nil
+}
+
+func isJSONNumber(v any) bool {
+	switch v.(type) {
+	case float64, float32, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8:
+		return true
+	default:
+		return false
+	}
+}
