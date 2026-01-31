@@ -23,6 +23,8 @@ type Store interface {
 	GetAnomalySummaryByRun(ctx Context, runID string) (AnomalySummaryOutput, error)
 	GetTriggerDecisionByRun(ctx Context, runID string) (TriggerDecisionOutput, error)
 	ListHandoffsByRun(ctx Context, runID string) ([]HandoffOutput, error)
+	CreatePhase2Run(ctx Context, packet map[string]any) (string, error)
+	UpdatePhase2RunPacket(ctx Context, runID string, packet map[string]any) error
 
 	CreateHandoff(ctx Context, input HandoffInput) (string, error)
 	GetHandoff(ctx Context, id string) (HandoffOutput, error)

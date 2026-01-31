@@ -250,6 +250,22 @@ func (s *StoreAdapter) ListHandoffsByRun(ctx context.Context, runID string) ([]H
 	return out, nil
 }
 
+func (s *StoreAdapter) CreatePhase2Run(ctx context.Context, packet map[string]any) (string, error) {
+	raw, err := json.Marshal(packet)
+	if err != nil {
+		return "", err
+	}
+	return s.repo.CreatePhase2Run(ctx, raw)
+}
+
+func (s *StoreAdapter) UpdatePhase2RunPacket(ctx context.Context, runID string, packet map[string]any) error {
+	raw, err := json.Marshal(packet)
+	if err != nil {
+		return err
+	}
+	return s.repo.UpdatePhase2RunPacket(ctx, runID, raw)
+}
+
 func (s *StoreAdapter) CreateHandoff(ctx context.Context, input HandoffInput) (string, error) {
 	packet, err := json.Marshal(input.Packet)
 	if err != nil {

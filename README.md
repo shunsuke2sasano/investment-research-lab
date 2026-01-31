@@ -88,6 +88,13 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_events_handoff.ps1
 powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_events_handoff.ps1 -NoReset
 ```
 
+### Smoke (Phase2 bootstrap)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase2_bootstrap.ps1
+# already running (reuse existing)
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase2_bootstrap.ps1 -NoReset
+```
+
 ## Notes
 - `case_id` in handoff creation links the handoff to the case for `/cases/{caseId}` snapshots.
 - `/cases/{caseId}/monitoring-plans` supports GET list + POST create.
@@ -143,9 +150,18 @@ Invoke-RestMethod -Method Post -Uri "$base/phase1/runs" -Headers $headers -Body 
 ```
 Note: `ir` fetcher is a stub implementation for now (no external calls).
 
+## Phase2 Run bootstrap (Phase1 handoff -> Phase2 run)
+```powershell
+Invoke-RestMethod -Method Post -Uri "$base/phase2/runs" -Headers $headers -Body (@{
+  packet = $handoff.packet
+} | ConvertTo-Json -Depth 20)
+```
+
 ### Smoke (Phase1 fetch -> doc.fetched)
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_fetch.ps1
 # already running (reuse existing)
 powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_fetch.ps1 -NoReset
+# alternate sources
+powershell -ExecutionPolicy Bypass -File scripts\smoke_phase1_fetch.ps1 -NoReset -Sources sec,edinet
 ```

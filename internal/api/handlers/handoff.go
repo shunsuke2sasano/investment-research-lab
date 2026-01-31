@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 	"time"
+
+	"investment_committee/internal/domain"
 )
 
 func (s *Server) HandleHandoffs(w http.ResponseWriter, r *http.Request) {
@@ -169,10 +171,19 @@ type errInvalid string
 func (e errInvalid) Error() string { return string(e) }
 
 func buildPhase1Packet(runID string, events []Phase1RunEvent) map[string]any {
+	inputs := make([]domain.Phase1EventProjectionInput, 0, len(events))
+	for _, e := range events {
+		inputs = append(inputs, domain.Phase1EventProjectionInput{
+			EventType: e.EventType,
+			Source:    e.Source,
+			Seq:       e.Seq,
+		})
+	}
+	meta := domain.ProjectPhase1Events(inputs)
 	return map[string]any{
 		"run_id": runID,
 		"events": events,
-		"meta":   map[string]any{},
+		"meta":   meta,
 	}
 }
 

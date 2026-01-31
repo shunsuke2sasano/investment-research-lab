@@ -47,6 +47,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.server.HandlePhase1Runs(w, req, parts[2:])
 		return
 	}
+	if len(parts) >= 2 && parts[0] == "phase2" && parts[1] == "runs" {
+		r.server.HandlePhase2Runs(w, req, parts[2:])
+		return
+	}
 
 	if len(parts) == 1 && parts[0] == "handoffs" {
 		r.server.HandleHandoffs(w, req)

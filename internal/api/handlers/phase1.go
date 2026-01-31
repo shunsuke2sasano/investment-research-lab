@@ -149,6 +149,8 @@ func maybeFetchPhase1Docs(ctx Context, s *Server, runID string, rawCfg map[strin
 	}
 	reg := fetcher.NewRegistry()
 	reg.Register(fetcher.StubIRFetcher{})
+	reg.Register(fetcher.StubSECFetcher{})
+	reg.Register(fetcher.StubEDINETFetcher{})
 
 	for _, src := range cfg.Sources {
 		f, ok := reg.Get(src)

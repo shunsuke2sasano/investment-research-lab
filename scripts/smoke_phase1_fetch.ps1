@@ -1,5 +1,6 @@
 param(
-  [switch]$NoReset
+  [switch]$NoReset,
+  [string[]]$Sources = @("ir")
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,7 +18,7 @@ Write-Host "== smoke: Phase1 fetch -> doc.fetched ==" -ForegroundColor Cyan
 
 $run = Invoke-RestMethod -Method Post -Uri "$base/phase1/runs" -Headers $headersJson -Body (@{
   mode = "manual"
-  config = @{ sources=@("ir"); max_items_per_source=1 }
+  config = @{ sources=$Sources; max_items_per_source=1 }
 } | ConvertTo-Json -Depth 10)
 
 $runId = $run.run_id

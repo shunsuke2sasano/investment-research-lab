@@ -145,3 +145,9 @@ type Phase1RunEvent struct {
 	Payload    json.RawMessage `json:"payload_json"`
 	CreatedAt  time.Time       `json:"created_at"`
 }
+
+type Phase2Run struct {
+	ID         string          `json:"id"`
+	InputPacket json.RawMessage `json:"input_packet"`
+	CreatedAt  time.Time       `json:"created_at"`
+}

@@ -49,6 +49,15 @@ type RunOutput struct {
 	Events     []Phase1RunEvent `json:"events"`
 }
 
+type Phase2RunInput struct {
+	Packet map[string]any `json:"packet"`
+}
+
+type Phase2RunOutput struct {
+	RunID  string         `json:"run_id"`
+	Packet map[string]any `json:"packet"`
+}
+
 type EventOutput struct {
 	EventID    string    `json:"event_id"`
 	Category   string    `json:"category"`
