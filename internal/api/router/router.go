@@ -26,6 +26,15 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if req.URL.Path == "/api/v1/health" {
+		if req.Method != http.MethodGet {
+			handlers.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+			return
+		}
+		handlers.WriteJSON(w, http.StatusOK, map[string]any{"status": "ok"})
+		return
+	}
+
 	path := strings.Trim(req.URL.Path, "/")
 	parts := strings.Split(path, "/")
 	if len(parts) < 2 || parts[0] != "api" || parts[1] != "v1" {
@@ -49,6 +58,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	if len(parts) >= 2 && parts[0] == "phase2" && parts[1] == "runs" {
 		r.server.HandlePhase2Runs(w, req, parts[2:])
+		return
+	}
+	if len(parts) >= 2 && parts[0] == "phase3" && parts[1] == "runs" {
+		r.server.HandlePhase3Runs(w, req, parts[2:])
+		return
+	}
+	if len(parts) >= 2 && parts[0] == "phase4" && parts[1] == "runs" {
+		r.server.HandlePhase4Runs(w, req, parts[2:])
 		return
 	}
 

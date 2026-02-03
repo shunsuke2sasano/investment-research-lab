@@ -25,6 +25,10 @@ type Store interface {
 	ListHandoffsByRun(ctx Context, runID string) ([]HandoffOutput, error)
 	CreatePhase2Run(ctx Context, packet map[string]any) (string, error)
 	UpdatePhase2RunPacket(ctx Context, runID string, packet map[string]any) error
+	CreatePhase3Run(ctx Context, packet map[string]any) (string, error)
+	UpdatePhase3RunPacket(ctx Context, runID string, packet map[string]any) error
+	CreatePhase4Run(ctx Context, packet map[string]any) (string, error)
+	UpdatePhase4RunPacket(ctx Context, runID string, packet map[string]any) error
 
 	CreateHandoff(ctx Context, input HandoffInput) (string, error)
 	GetHandoff(ctx Context, id string) (HandoffOutput, error)

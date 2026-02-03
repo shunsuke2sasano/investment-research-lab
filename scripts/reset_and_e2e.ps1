@@ -75,6 +75,15 @@ try {
     throw "e2e failed"
   }
 
+  Write-Host "== run README API examples ==" -ForegroundColor Cyan
+  powershell -ExecutionPolicy Bypass -File scripts\README_api_examples.ps1 -NoReset
+  if (-not $?) {
+    throw "readme api examples failed"
+  }
+  if ($LASTEXITCODE -ne 0) {
+    throw "readme api examples failed"
+  }
+
   Write-Host "[OK] E2E completed successfully" -ForegroundColor Green
   Write-Host "Next: try API quick examples in README.md" -ForegroundColor Cyan
 }

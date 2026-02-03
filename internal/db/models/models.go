@@ -151,3 +151,15 @@ type Phase2Run struct {
 	InputPacket json.RawMessage `json:"input_packet"`
 	CreatedAt  time.Time       `json:"created_at"`
 }
+
+type Phase3Run struct {
+	ID         string          `json:"id"`
+	InputPacket json.RawMessage `json:"input_packet"`
+	CreatedAt  time.Time       `json:"created_at"`
+}
+
+type Phase4Run struct {
+	ID         string          `json:"id"`
+	InputPacket json.RawMessage `json:"input_packet"`
+	CreatedAt  time.Time       `json:"created_at"`
+}

@@ -58,6 +58,24 @@ type Phase2RunOutput struct {
 	Packet map[string]any `json:"packet"`
 }
 
+type Phase3RunInput struct {
+	Packet map[string]any `json:"packet"`
+}
+
+type Phase3RunOutput struct {
+	RunID  string         `json:"run_id"`
+	Packet map[string]any `json:"packet"`
+}
+
+type Phase4RunInput struct {
+	Packet map[string]any `json:"packet"`
+}
+
+type Phase4RunOutput struct {
+	RunID  string         `json:"run_id"`
+	Packet map[string]any `json:"packet"`
+}
+
 type EventOutput struct {
 	EventID    string    `json:"event_id"`
 	Category   string    `json:"category"`

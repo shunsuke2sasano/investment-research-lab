@@ -19,56 +19,28 @@ powershell -ExecutionPolicy Bypass -File scripts\reset_and_e2e.ps1
 - Mojibake/BOM: PowerShell scripts are saved as UTF-8 with BOM; avoid editing with tools that strip BOM.
 
 ## API Examples (PowerShell)
+Run the API examples script (single source of truth):
+
 ```powershell
-$base = "http://localhost:8080/api/v1"
-$headers = @{ "X-API-Key"="devkey"; "Content-Type"="application/json" }
-
-# Universe create
-$u = Invoke-RestMethod -Method Post -Uri "$base/universe/items" -Headers $headers -Body (@{
-  entity_type="ticker"; entity_id="AAPL-20260101"; name="Apple"; keywords=@("iphone"); priority=50; is_active=$true
-} | ConvertTo-Json -Depth 10)
-
-# Case create (align entity_id with Universe)
-$case = Invoke-RestMethod -Method Post -Uri "$base/cases" -Headers $headers -Body (@{
-  title="Apple case AAPL-20260101"; case_type="ticker"; entity_id="AAPL-20260101"; priority=50
-} | ConvertTo-Json -Depth 10)
-
-# Run create (Phase1)
-$run = Invoke-RestMethod -Method Post -Uri "$base/phase1/runs" -Headers $headers -Body (@{
-  mode="manual"; config=@{ sources=@("ir"); max_items_per_source=1 }
-} | ConvertTo-Json -Depth 10)
-
-# Handoff create (heavy 1->3) + case_id
-$handoff = Invoke-RestMethod -Method Post -Uri "$base/handoffs" -Headers $headers -Body (@{
-  run_id=$run.run_id
-  case_id=$case.id
-  handoff_type="heavy"
-  from_phase=1
-  to_phase=3
-  packet=@{
-    handoff_type="heavy"
-    from_phase=1
-    to_phase=3
-    universe_item_ids=@($u.id)
-    event_ids=@()
-    trigger_decision_id=("td-"+$run.run_id)
-    created_at=(Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    payload=@{
-      summary_md="## Handoff (heavy)"
-      industry_scope="consumer electronics"
-      value_pool_notes="devices/services"
-      key_questions=@("who has pricing power?","regulatory risk?")
-    }
-  }
-} | ConvertTo-Json -Depth 20)
-
-# Case snapshot (handoffs should be an array)
-Invoke-RestMethod -Uri "$base/cases/$($case.id)" -Headers @{ "X-API-Key"="devkey" } | ConvertTo-Json -Depth 20
-
-# Monitoring plans list (case scoped)
-Invoke-RestMethod -Uri "$base/cases/$($case.id)/monitoring-plans" -Headers @{ "X-API-Key"="devkey" } | ConvertTo-Json -Depth 20
+powershell -ExecutionPolicy Bypass -File scripts\README_api_examples.ps1
+# already running (reuse existing)
+powershell -ExecutionPolicy Bypass -File scripts\README_api_examples.ps1 -NoReset
 ```
 
+The script `scripts/README_api_examples.ps1` is the only authoritative source for API examples.
+
+## Tips
+- If `Select-String -Recurse` is unavailable, use: `Get-ChildItem -Recurse | Select-String -Pattern "..."`.
+- 401 unauthorized: ensure `X-API-Key` is included.
+- 404 not found: confirm `/api/v1` path (health is `/api/v1/health`).
+
+## Verification (Quick)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\reset_and_e2e.ps1
+docker compose up -d --build
+Invoke-RestMethod -Method Get -Uri "http://localhost:8080/api/v1/health" -Headers @{ "X-API-Key"="devkey" }
+```
+```
 ## Tests
 ### Host
 ```powershell
